@@ -24,6 +24,7 @@ orientation and/or reflection of the outputs for a screen.
 
 * With the query flag, `xrandr -q` outputs the following :
 
+![img1](/img/posts/img1.png)
 ADD IMG1 here
 
 * To obtain the relevant (connected) desktop, the output of the previous command is piped through to a 

@@ -1,0 +1,277 @@
+I"rJ<h1 id="screen-brightness">Screen Brightness</h1>
+<h6 id="a-convenient-way-to-control-and-keep-track-of-the-brightness-level-of-your-i3-display">A convenient way to control and keep track of the brightness level of your i3 display…</h6>
+<hr />
+<hr />
+<h4 id="problem-statement">Problem Statement</h4>
+<blockquote>
+  <p>i3 does not allow you to set screen brightness natively. Write a bash script to increase and decrease the screen
+brightness in small steps. Now make appropriate key bindings in your i3config file to integrate this with i3.
+Find out how on-screen notifications can be rendered. Finally, add support in your script for on-screen 
+notifications to show the current brightness level whenever your script is executed.
+—</p>
+  <h4 id="brightness">Brightness</h4>
+</blockquote>
+
+<p>The significance of i3 window manager on a Power-User’s productivity is significant with multiple screens. What’s more?
+The brightness of all these screens can be adjusted individually by providing necessary keybindings. For the sake of simplicity,
+a single display will be considered in answering this question. Firstly, the name of the display whose brightness has to be
+adjusted has to be extracted. This will be achieved using the <code class="language-plaintext highlighter-rouge">xrandr</code> tool, native to linux. Xrandr is used to set the size,
+orientation and/or reflection of the outputs for a screen.</p>
+
+<ul>
+  <li>With the query flag, <code class="language-plaintext highlighter-rouge">xrandr -q</code> outputs the following :</li>
+</ul>
+
+<p>ADD IMG1 here</p>
+
+<ul>
+  <li>To obtain the relevant (connected) desktop, the output of the previous command is piped through to a 
+ <code class="language-plaintext highlighter-rouge">grep ' connected'</code> command, whose output is as follows :
+ADD IMG2 here</li>
+  <li>To get only the first of the connected desktops (the present one), the output is then piped through to a 
+<code class="language-plaintext highlighter-rouge">head -n 1</code> command
+The output remains same there is only one connected desktop here.</li>
+  <li>Of this output, finally, we need the first field, which is the name of the current display. For this the command
+<code class="language-plaintext highlighter-rouge">cut -d ' ' -f1</code> is used.
+ADD IMG3 here</li>
+  <li>For increasing / decreasing brightness levels, the brightness is extracted, increased and then set to the increased
+level with the following command in a bash script (.sh file):
+<code class="language-plaintext highlighter-rouge">xrandr --output Virtual1 --brightness $(echo "$(xrandr --verbose | grep Brightness | grep -o '[0-9].*')+0.1" | bc)
+</code>
+Notice the <code class="language-plaintext highlighter-rouge">--output</code>  argument is set to <code class="language-plaintext highlighter-rouge">Virtual1</code>, since this is the name of the display as extracted above. 
+Brightness is extracted using the appropriate <code class="language-plaintext highlighter-rouge">grep</code> commands and incremented (as it is the increase_brightness.sh script).
+A similar decrease-brightness script is also made with - instead of + .</li>
+</ul>
+
+<h4 id="notifications">Notifications</h4>
+<p>Notifications are rendered with the help of external libraries like Dunst. So the following have to be installed first :</p>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">sudo apt-get install dunst</code></li>
+  <li><code class="language-plaintext highlighter-rouge">sudo apt-get install libnotify4</code></li>
+</ul>
+
+<p>As a simple kickstarter for Dunst :</p>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">dunst</code> command has to be run to start the notification server.</li>
+  <li>Notifications are then sent using the <code class="language-plaintext highlighter-rouge">notify-send "brightness level is decreased to $ABC."</code> command.</li>
+</ul>
+
+<p>In our script, we will run the <code class="language-plaintext highlighter-rouge">dunst &amp;</code> command so that the server runs in the background whenever the increase-brightness
+or decrease-brightness script is run on executing a key-binding and send appropriate notifications of the increased brightness level.</p>
+
+<ul>
+  <li>The following lines are added to the i3config file, which enable execution of respective shell-scripts on invoking the 
+ key binding :
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">bindsym $mod+r exec ~/decrease_brightness.sh</code></li>
+      <li><code class="language-plaintext highlighter-rouge">bindsym $mod+t exec ~/increase_brightness.sh</code></li>
+    </ul>
+  </li>
+</ul>
+
+<p>Appropriate files are given below :</p>
+
+<h5 id="increase-brightness">increase-brightness</h5>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/bin/bash</span>
+dunst &amp;
+xrandr <span class="nt">--output</span> eDP-1 <span class="nt">--brightness</span> <span class="si">$(</span><span class="nb">echo</span> <span class="s2">"</span><span class="si">$(</span>xrandr <span class="nt">--verbose</span> | <span class="nb">grep </span>Brightness | <span class="nb">grep</span> <span class="nt">-o</span> <span class="s1">'[0-9].*'</span><span class="si">)</span><span class="s2">+0.1"</span> | bc<span class="si">)</span>
+<span class="nv">ABC</span><span class="o">=</span><span class="si">$(</span><span class="nb">echo</span> <span class="s2">"</span><span class="si">$(</span>xrandr <span class="nt">--verbose</span> | <span class="nb">grep </span>Brightness | <span class="nb">grep</span> <span class="nt">-o</span> <span class="s1">'[0-9].*'</span><span class="si">)</span><span class="s2">"</span><span class="si">)</span>
+notify-send <span class="s2">"brightness level is increased to </span><span class="nv">$ABC</span><span class="s2">."</span>  
+</code></pre></div></div>
+
+<h5 id="decrease-brightness">decrease-brightness</h5>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/bin/bash</span>
+dunst &amp;
+xrandr <span class="nt">--output</span> eDP-1 <span class="nt">--brightness</span> <span class="si">$(</span><span class="nb">echo</span> <span class="s2">"</span><span class="si">$(</span>xrandr <span class="nt">--verbose</span> | <span class="nb">grep </span>Brightness | <span class="nb">grep</span> <span class="nt">-o</span> <span class="s1">'[0-9].*'</span><span class="si">)</span><span class="s2">-0.1"</span> | bc<span class="si">)</span>
+<span class="nv">ABC</span><span class="o">=</span><span class="si">$(</span><span class="nb">echo</span> <span class="s2">"</span><span class="si">$(</span>xrandr <span class="nt">--verbose</span> | <span class="nb">grep </span>Brightness | <span class="nb">grep</span> <span class="nt">-o</span> <span class="s1">'[0-9].*'</span><span class="si">)</span><span class="s2">"</span><span class="si">)</span>
+notify-send <span class="s2">"brightness level is decreased to </span><span class="nv">$ABC</span><span class="s2">."</span>
+</code></pre></div></div>
+<h5 id="config-file">Config file</h5>
+<h6 id="find-the-appropriate-lines-towards-the-wend-of-the-config-file">Find the appropriate lines towards the wend of the config file.</h6>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># This file has been auto-generated by i3-config-wizard(1).</span>
+<span class="c"># It will not be overwritten, so edit it as you like.</span>
+<span class="c">#</span>
+<span class="c"># Should you change your keyboard layout some time, delete</span>
+<span class="c"># this file and re-run i3-config-wizard(1).</span>
+<span class="c">#</span>
+
+<span class="c"># i3 config file (v4)</span>
+<span class="c">#</span>
+<span class="c"># Please see https://i3wm.org/docs/userguide.html for a complete reference!</span>
+
+<span class="nb">set</span> <span class="nv">$mod</span> Mod4
+
+<span class="c"># Font for window titles. Will also be used by the bar unless a different font</span>
+<span class="c"># is used in the bar {} block below.</span>
+font pango:monospace 8
+
+<span class="c"># This font is widely installed, provides lots of unicode glyphs, right-to-left</span>
+<span class="c"># text rendering and scalability on retina/hidpi displays (thanks to pango).</span>
+<span class="c">#font pango:DejaVu Sans Mono 8</span>
+
+<span class="c"># The combination of xss-lock, nm-applet and pactl is a popular choice, so</span>
+<span class="c"># they are included here as an example. Modify as you see fit.</span>
+
+<span class="c"># xss-lock grabs a logind suspend inhibit lock and will use i3lock to lock the</span>
+<span class="c"># screen before suspend. Use loginctl lock-session to lock your screen.</span>
+<span class="nb">exec</span> <span class="nt">--no-startup-id</span> xss-lock <span class="nt">--transfer-sleep-lock</span> <span class="nt">--</span> i3lock <span class="nt">--nofork</span>
+
+<span class="c"># NetworkManager is the most popular way to manage wireless networks on Linux,</span>
+<span class="c"># and nm-applet is a desktop environment-independent system tray GUI for it.</span>
+<span class="nb">exec</span> <span class="nt">--no-startup-id</span> nm-applet
+
+<span class="c"># Use pactl to adjust volume in PulseAudio.</span>
+<span class="nb">set</span> <span class="nv">$refresh_i3status</span> killall <span class="nt">-SIGUSR1</span> i3status
+bindsym XF86AudioRaiseVolume <span class="nb">exec</span> <span class="nt">--no-startup-id</span> pactl set-sink-volume @DEFAULT_SINK@ +10% <span class="o">&amp;&amp;</span> <span class="nv">$refresh_i3status</span>
+bindsym XF86AudioLowerVolume <span class="nb">exec</span> <span class="nt">--no-startup-id</span> pactl set-sink-volume @DEFAULT_SINK@ <span class="nt">-10</span>% <span class="o">&amp;&amp;</span> <span class="nv">$refresh_i3status</span>
+bindsym XF86AudioMute <span class="nb">exec</span> <span class="nt">--no-startup-id</span> pactl set-sink-mute @DEFAULT_SINK@ toggle <span class="o">&amp;&amp;</span> <span class="nv">$refresh_i3status</span>
+bindsym XF86AudioMicMute <span class="nb">exec</span> <span class="nt">--no-startup-id</span> pactl set-source-mute @DEFAULT_SOURCE@ toggle <span class="o">&amp;&amp;</span> <span class="nv">$refresh_i3status</span>
+
+<span class="c"># Use Mouse+$mod to drag floating windows to their wanted position</span>
+floating_modifier <span class="nv">$mod</span>
+
+<span class="c"># start a terminal</span>
+bindsym <span class="nv">$mod</span>+Return <span class="nb">exec </span>i3-sensible-terminal
+
+<span class="c"># kill focused window</span>
+bindsym <span class="nv">$mod</span>+Shift+q <span class="nb">kill</span>
+
+<span class="c"># start dmenu (a program launcher)</span>
+bindsym <span class="nv">$mod</span>+d <span class="nb">exec </span>dmenu_run
+<span class="c"># There also is the (new) i3-dmenu-desktop which only displays applications</span>
+<span class="c"># shipping a .desktop file. It is a wrapper around dmenu, so you need that</span>
+<span class="c"># installed.</span>
+<span class="c"># bindsym $mod+d exec --no-startup-id i3-dmenu-desktop</span>
+
+<span class="c"># change focus</span>
+bindsym <span class="nv">$mod</span>+j focus left
+bindsym <span class="nv">$mod</span>+k focus down
+bindsym <span class="nv">$mod</span>+l focus up
+bindsym <span class="nv">$mod</span>+semicolon focus right
+
+<span class="c"># alternatively, you can use the cursor keys:</span>
+bindsym <span class="nv">$mod</span>+Left focus left
+bindsym <span class="nv">$mod</span>+Down focus down
+bindsym <span class="nv">$mod</span>+Up focus up
+bindsym <span class="nv">$mod</span>+Right focus right
+<span class="c">#i3lock</span>
+bindsym <span class="nv">$mod</span>+Shift+i <span class="nb">exec </span>bash /home/ananya/Desktop/assignment3_ananya_asus/q4
+<span class="c"># move focused window</span>
+bindsym <span class="nv">$mod</span>+Shift+j move left
+bindsym <span class="nv">$mod</span>+Shift+k move down
+bindsym <span class="nv">$mod</span>+Shift+l move up
+bindsym <span class="nv">$mod</span>+Shift+semicolon move right
+
+<span class="c"># alternatively, you can use the cursor keys:</span>
+bindsym <span class="nv">$mod</span>+Shift+Left move left
+bindsym <span class="nv">$mod</span>+Shift+Down move down
+bindsym <span class="nv">$mod</span>+Shift+Up move up
+bindsym <span class="nv">$mod</span>+Shift+Right move right
+
+<span class="c"># split in horizontal orientation</span>
+bindsym <span class="nv">$mod</span>+h <span class="nb">split </span>h
+
+<span class="c"># split in vertical orientation</span>
+bindsym <span class="nv">$mod</span>+v <span class="nb">split </span>v
+
+<span class="c"># enter fullscreen mode for the focused container</span>
+bindsym <span class="nv">$mod</span>+f fullscreen toggle
+
+<span class="c"># change container layout (stacked, tabbed, toggle split)</span>
+bindsym <span class="nv">$mod</span>+s layout stacking
+bindsym <span class="nv">$mod</span>+w layout tabbed
+bindsym <span class="nv">$mod</span>+e layout toggle <span class="nb">split</span>
+
+<span class="c"># toggle tiling / floating</span>
+bindsym <span class="nv">$mod</span>+Shift+space floating toggle
+
+<span class="c"># change focus between tiling / floating windows</span>
+bindsym <span class="nv">$mod</span>+space focus mode_toggle
+
+<span class="c"># focus the parent container</span>
+bindsym <span class="nv">$mod</span>+a focus parent
+
+<span class="c"># focus the child container</span>
+<span class="c">#bindsym $mod+d focus child</span>
+
+<span class="c"># Define names for default workspaces for which we configure key bindings later on.</span>
+<span class="c"># We use variables to avoid repeating the names in multiple places.</span>
+<span class="nb">set</span> <span class="nv">$ws1</span> <span class="s2">"1"</span>
+<span class="nb">set</span> <span class="nv">$ws2</span> <span class="s2">"2"</span>
+<span class="nb">set</span> <span class="nv">$ws3</span> <span class="s2">"3"</span>
+<span class="nb">set</span> <span class="nv">$ws4</span> <span class="s2">"4"</span>
+<span class="nb">set</span> <span class="nv">$ws5</span> <span class="s2">"5"</span>
+<span class="nb">set</span> <span class="nv">$ws6</span> <span class="s2">"6"</span>
+<span class="nb">set</span> <span class="nv">$ws7</span> <span class="s2">"7"</span>
+<span class="nb">set</span> <span class="nv">$ws8</span> <span class="s2">"8"</span>
+<span class="nb">set</span> <span class="nv">$ws9</span> <span class="s2">"9"</span>
+<span class="nb">set</span> <span class="nv">$ws10</span> <span class="s2">"10"</span>
+
+<span class="c"># switch to workspace</span>
+bindsym <span class="nv">$mod</span>+1 workspace number <span class="nv">$ws1</span>
+bindsym <span class="nv">$mod</span>+2 workspace number <span class="nv">$ws2</span>
+bindsym <span class="nv">$mod</span>+3 workspace number <span class="nv">$ws3</span>
+bindsym <span class="nv">$mod</span>+4 workspace number <span class="nv">$ws4</span>
+bindsym <span class="nv">$mod</span>+5 workspace number <span class="nv">$ws5</span>
+bindsym <span class="nv">$mod</span>+6 workspace number <span class="nv">$ws6</span>
+bindsym <span class="nv">$mod</span>+7 workspace number <span class="nv">$ws7</span>
+bindsym <span class="nv">$mod</span>+8 workspace number <span class="nv">$ws8</span>
+bindsym <span class="nv">$mod</span>+9 workspace number <span class="nv">$ws9</span>
+bindsym <span class="nv">$mod</span>+0 workspace number <span class="nv">$ws10</span>
+
+<span class="c"># move focused container to workspace</span>
+bindsym <span class="nv">$mod</span>+Shift+1 move container to workspace number <span class="nv">$ws1</span>
+bindsym <span class="nv">$mod</span>+Shift+2 move container to workspace number <span class="nv">$ws2</span>
+bindsym <span class="nv">$mod</span>+Shift+3 move container to workspace number <span class="nv">$ws3</span>
+bindsym <span class="nv">$mod</span>+Shift+4 move container to workspace number <span class="nv">$ws4</span>
+bindsym <span class="nv">$mod</span>+Shift+5 move container to workspace number <span class="nv">$ws5</span>
+bindsym <span class="nv">$mod</span>+Shift+6 move container to workspace number <span class="nv">$ws6</span>
+bindsym <span class="nv">$mod</span>+Shift+7 move container to workspace number <span class="nv">$ws7</span>
+bindsym <span class="nv">$mod</span>+Shift+8 move container to workspace number <span class="nv">$ws8</span>
+bindsym <span class="nv">$mod</span>+Shift+9 move container to workspace number <span class="nv">$ws9</span>
+bindsym <span class="nv">$mod</span>+Shift+0 move container to workspace number <span class="nv">$ws10</span>
+
+<span class="c"># reload the configuration file</span>
+bindsym <span class="nv">$mod</span>+Shift+c reload
+<span class="c"># restart i3 inplace (preserves your layout/session, can be used to upgrade i3)</span>
+bindsym <span class="nv">$mod</span>+Shift+r restart
+<span class="c"># exit i3 (logs you out of your X session)</span>
+bindsym <span class="nv">$mod</span>+Shift+e <span class="nb">exec</span> <span class="s2">"i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -B 'Yes, exit i3' 'i3-msg exit'"</span>
+
+<span class="c"># resize window (you can also use the mouse for that)</span>
+mode <span class="s2">"resize"</span> <span class="o">{</span>
+        <span class="c"># These bindings trigger as soon as you enter the resize mode</span>
+
+        <span class="c"># Pressing left will shrink the window’s width.</span>
+        <span class="c"># Pressing right will grow the window’s width.</span>
+        <span class="c"># Pressing up will shrink the window’s height.</span>
+        <span class="c"># Pressing down will grow the window’s height.</span>
+        bindsym j resize shrink width 10 px or 10 ppt
+        bindsym k resize grow height 10 px or 10 ppt
+        bindsym l resize shrink height 10 px or 10 ppt
+        bindsym semicolon resize grow width 10 px or 10 ppt
+
+        <span class="c"># same bindings, but for the arrow keys</span>
+        bindsym Left resize shrink width 10 px or 10 ppt
+        bindsym Down resize grow height 10 px or 10 ppt
+        bindsym Up resize shrink height 10 px or 10 ppt
+        bindsym Right resize grow width 10 px or 10 ppt
+
+        <span class="c"># back to normal: Enter or Escape or $mod+r</span>
+        bindsym Return mode <span class="s2">"default"</span>
+        bindsym Escape mode <span class="s2">"default"</span>
+        bindsym <span class="nv">$mod</span>+r mode <span class="s2">"default"</span>
+<span class="o">}</span>
+
+
+bindsym <span class="nv">$mod</span>+r <span class="nb">exec</span> ~/decrease_brightness.sh
+bindsym <span class="nv">$mod</span>+t <span class="nb">exec</span> ~/increase_brightness.sh
+
+<span class="c"># Start i3bar to display a workspace bar (plus the system information i3status</span>
+<span class="c"># finds out, if available)</span>
+bar <span class="o">{</span>
+        status_command i3status
+<span class="o">}</span>
+</code></pre></div></div>
+
+:ET

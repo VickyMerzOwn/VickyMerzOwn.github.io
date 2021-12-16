@@ -1,0 +1,14 @@
+I"<h1 id="screen-brightness">Screen Brightness</h1>
+<h6 id="a-convenient-way-to-control-and-keep-track-of-the-brightness-level-of-your-i3-display">A convenient way to control and keep track of the brightness level of your i3 display…</h6>
+<hr />
+<hr />
+<h4 id="problem-statement">Problem Statement</h4>
+<blockquote>
+  <p>i3 does not allow you to set screen brightness natively. Write a bash script to increase and decrease the screen
+brightness in small steps. Now make appropriate key bindings in your i3config file to integrate this with i3.
+Find out how on-screen notifications can be rendered. Finally, add support in your script for on-screen 
+notifications to show the current brightness level whenever your script is executed.
+—</p>
+  <h4 id="brightness">Brightness</h4>
+</blockquote>
+:ET

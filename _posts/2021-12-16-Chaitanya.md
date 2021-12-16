@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "Home-Work 5, Question 9"
-subtitle: "Setting up screen-brightness adjustment in i3 window manager"
+title: "Home-Work 3, Question 6"
+subtitle: "Classify the students in CS100 based on their savings"
 ---
 # Assignment 3
 

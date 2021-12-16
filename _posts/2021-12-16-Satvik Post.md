@@ -3,6 +3,7 @@ layout: post
 title: "Home-Work 5, Question 9"
 subtitle: "Setting up screen-brightness adjustment in i3 window manager"
 author: Satvik Vemuganti, 12041710
+background: '/img/posts/matrix-code.jpg'
 ---
 
 # Screen Brightness
@@ -25,13 +26,13 @@ orientation and/or reflection of the outputs for a screen.
 
 * With the query flag, `xrandr -q` outputs the following :
 ---
-<img src="/img/posts/img1.png" alt="drawing" width="600"/>
+<img src="/img/posts/img1.png" alt="drawing" width="100%"/>
 
 
 * To obtain the relevant (connected) desktop, the output of the previous command is piped through to a 
  `grep ' connected'` command, whose output is as follows :
 
-<img src="/img/posts/img2.png" alt="drawing" width="600"/>
+<img src="/img/posts/img2.png" alt="drawing" width="100%"/>
 
 * To get only the first of the connected desktops (the present one), the output is then piped through to a 
 `head -n 1` command
@@ -39,7 +40,7 @@ The output remains same there is only one connected desktop here.
 * Of this output, finally, we need the first field, which is the name of the current display. For this the command
 `cut -d ' ' -f1` is used.
 
-<img src="/img/posts/img3.png" alt="drawing" width="600"/>
+<img src="/img/posts/img3.png" alt="drawing" width="100%"/>
 
 * For increasing / decreasing brightness levels, the brightness is extracted, increased and then set to the increased
 level with the following command in a bash script (.sh file):

@@ -1,0 +1,167 @@
+I"1<h1 id="assignment-3">Assignment 3</h1>
+
+<h2 id="question-6">Question 6</h2>
+<p>Using <code class="language-plaintext highlighter-rouge">awk</code>, your task is to classify the students in CS100 based on their savings.</p>
+
+<h3 id="instructions">Instructions</h3>
+<ul>
+  <li>Write an <code class="language-plaintext highlighter-rouge">awk</code> one-liner/script to get the list of all students from the group file</li>
+  <li>Let us say that <code class="language-plaintext highlighter-rouge">Pocket Money</code> is fixed to 4000 and the minimum expenditure is 2500. You have to generate a list of 59 random integers between 2500 and 4000 for the field of <code class="language-plaintext highlighter-rouge">Pocket Money</code>.</li>
+  <li><code class="language-plaintext highlighter-rouge">Savings = Pocket Money - Expenses</code></li>
+  <li>Output format is <code class="language-plaintext highlighter-rouge">Roll No</code>, <code class="language-plaintext highlighter-rouge">Name</code>, <code class="language-plaintext highlighter-rouge">Pocket Money</code>, <code class="language-plaintext highlighter-rouge">Expenses</code>, <code class="language-plaintext highlighter-rouge">Savings</code>, <code class="language-plaintext highlighter-rouge">Category</code></li>
+  <li>The categories with respect to savings are: Miser, Planner, Lavish (Decide intervals yourself)</li>
+  <li>Format the output for column-wise display.</li>
+  <li>Show a consolidated report of how many students fall in each category.</li>
+</ul>
+
+<p>The output should look something like this</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Roll No.</th>
+      <th>Name</th>
+      <th>Pocket Money</th>
+      <th>Expenses</th>
+      <th>Savings</th>
+      <th>Category</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>12040450</td>
+      <td>Chaitanya Bisht</td>
+      <td>4000</td>
+      <td>3500</td>
+      <td>500</td>
+      <td>Lavish</td>
+    </tr>
+    <tr>
+      <td>12040450</td>
+      <td>Ananya</td>
+      <td>4000</td>
+      <td>3000</td>
+      <td>1000</td>
+      <td>Lavish</td>
+    </tr>
+    <tr>
+      <td>12041710</td>
+      <td>Satvik Vemuganti</td>
+      <td>4000</td>
+      <td>4000</td>
+      <td>0</td>
+      <td>Lavish</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="bash-script">Bash Script</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#! /bin/bash</span>
+
+<span class="nv">expenses</span><span class="o">=()</span>
+<span class="nv">category</span><span class="o">=()</span>
+<span class="nv">students</span><span class="o">=</span><span class="si">$(</span><span class="nb">awk</span> <span class="nt">-F</span> <span class="s2">","</span> <span class="s1">'{print $2","$3"\n"$4","$5"\n"$6","$7}'</span> group | <span class="nb">grep</span> <span class="nt">-v</span> <span class="s2">"^,"</span><span class="si">)</span>
+<span class="nv">count</span><span class="o">=</span><span class="si">$(</span><span class="nb">echo</span> <span class="s2">"</span><span class="nv">$students</span><span class="s2">"</span> | <span class="nb">awk</span> <span class="nt">-F</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span> <span class="s1">'BEGIN{i=0} {i++} END{print i}'</span><span class="si">)</span>
+
+<span class="k">for </span>i <span class="k">in</span> <span class="si">$(</span><span class="nb">seq</span> <span class="s2">"</span><span class="nv">$count</span><span class="s2">"</span><span class="si">)</span>
+<span class="k">do
+    </span><span class="nv">e</span><span class="o">=</span><span class="k">$((</span><span class="m">2500</span> <span class="o">+</span> <span class="nv">$RANDOM</span> <span class="o">%</span> <span class="m">1500</span><span class="k">))</span>
+    expenses+<span class="o">=(</span><span class="nv">$e</span><span class="o">)</span>
+    <span class="k">if</span> <span class="o">[[</span> <span class="nv">$e</span> <span class="nt">-ge</span> 3500 <span class="o">]]</span>
+    <span class="k">then
+        </span>category+<span class="o">=(</span><span class="s2">"Lavish"</span><span class="o">)</span>
+    <span class="k">elif</span> <span class="o">[[</span> <span class="nv">$e</span> <span class="nt">-ge</span> 3000 <span class="o">]]</span>
+    <span class="k">then
+        </span>category+<span class="o">=(</span><span class="s2">"Planner"</span><span class="o">)</span>
+    <span class="k">elif</span> <span class="o">[[</span> <span class="nv">$e</span> <span class="nt">-lt</span> 3000 <span class="o">]]</span>
+    <span class="k">then
+        </span>category+<span class="o">=(</span><span class="s2">"Miser"</span><span class="o">)</span>
+
+    <span class="k">fi
+done
+
+
+</span><span class="nv">output</span><span class="o">=</span><span class="si">$(</span><span class="nb">echo</span> <span class="s2">"</span><span class="nv">$students</span><span class="s2">"</span> | <span class="nb">awk</span> <span class="nt">-v</span> <span class="nv">arr</span><span class="o">=</span><span class="s2">"</span><span class="k">${</span><span class="nv">expenses</span><span class="p">[*]</span><span class="k">}</span><span class="s2">"</span> <span class="nt">-v</span> <span class="nv">arr2</span><span class="o">=</span><span class="s2">"</span><span class="k">${</span><span class="nv">category</span><span class="p">[*]</span><span class="k">}</span><span class="s2">"</span> <span class="nt">-F</span> <span class="s2">","</span> <span class="s1">'BEGIN{i=1;split(arr,list," ");split(arr2,list2," ");print "Roll No.,Name,Pocket Money,Expenses,Savings,Category"} {printf "%d,%s,4000,%d,%d,%s\n",$2,$1,list[i],(4000-list[i]),list2[i];i++}'</span>
+<span class="si">)</span>
+
+
+<span class="c"># 6a</span>
+<span class="nb">echo</span> <span class="s2">"</span><span class="nv">$output</span><span class="s2">"</span> | column <span class="nt">-t</span> <span class="nt">-s</span> <span class="s2">","</span>
+
+
+<span class="c"># 6B</span>
+<span class="nb">echo</span> <span class="s2">"</span><span class="nv">$output</span><span class="s2">"</span> | <span class="nb">awk</span> <span class="nt">-F</span> <span class="s2">","</span> <span class="s1">'BEGIN{lavish=0;miser=0;planner=0}{
+    if ($6 == "Lavish") lavish++;
+    if ($6 == "Miser") miser++;
+    if ($6 == "Planner") planner++;
+} END{
+    print "\nTotal Counts"
+    print "Lavish: " lavish
+    print "Planner: " planner
+    print "Miser: " miser
+
+}'</span>
+</code></pre></div></div>
+<h3 id="script-explanation">Script Explanation</h3>
+<p>Let us break down the script and understand how it works</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">expenses</span><span class="o">=()</span>
+<span class="nv">category</span><span class="o">=()</span>
+<span class="nv">students</span><span class="o">=</span><span class="si">$(</span><span class="nb">awk</span> <span class="nt">-F</span> <span class="s2">","</span> <span class="s1">'{print $2","$3"\n"$4","$5"\n"$6","$7}'</span> group | <span class="nb">grep</span> <span class="nt">-v</span> <span class="s2">"^,"</span><span class="si">)</span>
+<span class="nv">count</span><span class="o">=</span><span class="si">$(</span><span class="nb">echo</span> <span class="s2">"</span><span class="nv">$students</span><span class="s2">"</span> | <span class="nb">awk</span> <span class="nt">-F</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span> <span class="s1">'BEGIN{i=0} {i++} END{print i}'</span><span class="si">)</span>
+</code></pre></div></div>
+<p>Here the <code class="language-plaintext highlighter-rouge">expenses</code> and <code class="language-plaintext highlighter-rouge">category</code> are empty arrays which will be populated later on. <code class="language-plaintext highlighter-rouge">students</code> array contains the list of students with their roll numbers.</p>
+
+<p><code class="language-plaintext highlighter-rouge">count</code> contains the total number of students enrolled in the CS100 course</p>
+
+<hr />
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for </span>i <span class="k">in</span> <span class="si">$(</span><span class="nb">seq</span> <span class="s2">"</span><span class="nv">$count</span><span class="s2">"</span><span class="si">)</span>
+<span class="k">do
+    </span><span class="nv">e</span><span class="o">=</span><span class="k">$((</span><span class="m">2500</span> <span class="o">+</span> <span class="nv">$RANDOM</span> <span class="o">%</span> <span class="m">1500</span><span class="k">))</span>
+    expenses+<span class="o">=(</span><span class="nv">$e</span><span class="o">)</span>
+    <span class="k">if</span> <span class="o">[[</span> <span class="nv">$e</span> <span class="nt">-ge</span> 3500 <span class="o">]]</span>
+    <span class="k">then
+        </span>category+<span class="o">=(</span><span class="s2">"Lavish"</span><span class="o">)</span>
+    <span class="k">elif</span> <span class="o">[[</span> <span class="nv">$e</span> <span class="nt">-ge</span> 3000 <span class="o">]]</span>
+    <span class="k">then
+        </span>category+<span class="o">=(</span><span class="s2">"Planner"</span><span class="o">)</span>
+    <span class="k">elif</span> <span class="o">[[</span> <span class="nv">$e</span> <span class="nt">-lt</span> 3000 <span class="o">]]</span>
+    <span class="k">then
+        </span>category+<span class="o">=(</span><span class="s2">"Miser"</span><span class="o">)</span>
+
+    <span class="k">fi
+done</span>
+</code></pre></div></div>
+
+<p>This <code class="language-plaintext highlighter-rouge">for</code> loop assigns a random expenditure between 2500 to 4000 to each students and stores the corresponding expenditure to the <code class="language-plaintext highlighter-rouge">expenses</code> array. At the same time the category of each students is determined and is stored in the <code class="language-plaintext highlighter-rouge">category</code> array.</p>
+
+<hr />
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">output</span><span class="o">=</span><span class="si">$(</span><span class="nb">echo</span> <span class="s2">"</span><span class="nv">$students</span><span class="s2">"</span> | <span class="nb">awk</span> <span class="nt">-v</span> <span class="nv">arr</span><span class="o">=</span><span class="s2">"</span><span class="k">${</span><span class="nv">expenses</span><span class="p">[*]</span><span class="k">}</span><span class="s2">"</span> <span class="nt">-v</span> <span class="nv">arr2</span><span class="o">=</span><span class="s2">"</span><span class="k">${</span><span class="nv">category</span><span class="p">[*]</span><span class="k">}</span><span class="s2">"</span> <span class="nt">-F</span> <span class="s2">","</span> <span class="s1">'BEGIN{i=1;split(arr,list," ");split(arr2,list2," ");print "Roll No.,Name,Pocket Money,Expenses,Savings,Category"} {printf "%d,%s,4000,%d,%d,%s\n",$2,$1,list[i],(4000-list[i]),list2[i];i++}'</span>
+<span class="si">)</span>
+
+<span class="nb">echo</span> <span class="s2">"</span><span class="nv">$output</span><span class="s2">"</span> | column <span class="nt">-t</span> <span class="nt">-s</span> <span class="s2">","</span>
+</code></pre></div></div>
+
+<p>This one-liner creates a column like formatted information of the students with their expenses, savings and categories.</p>
+
+<p>The <code class="language-plaintext highlighter-rouge">column</code>  command is used to display the table in a neat and formatted manner and adjusts the data being displayed automatically according to the terminal window size.</p>
+
+<hr />
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">echo</span> <span class="s2">"</span><span class="nv">$output</span><span class="s2">"</span> | <span class="nb">awk</span> <span class="nt">-F</span> <span class="s2">","</span> <span class="s1">'BEGIN{lavish=0;miser=0;planner=0}{
+    if ($6 == "Lavish") lavish++;
+    if ($6 == "Miser") miser++;
+    if ($6 == "Planner") planner++;
+} END{
+    print "\nTotal Counts"
+    print "Lavish: " lavish
+    print "Planner: " planner
+    print "Miser: " miser
+
+}'</span>
+</code></pre></div></div>
+
+<p>This <code class="language-plaintext highlighter-rouge">awk</code> script takes the output of the table and counts how many students belong to each category and at the end displays the total count.</p>
+
+:ET
